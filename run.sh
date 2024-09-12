@@ -58,10 +58,10 @@ fi
 # Check if the ground truth works on your machine
 if [ ${DO_EVAL} = "true" ]; then
   echo "Evaluating"
-  touch $(pwd)/${OUTDIR}/metrics.json
+  touch $(pwd)/${OUTDIR}/${DATASET}-${SUBSET}-${SPLIT}_metrics.json
   singularity exec \
     --bind $(pwd)/${OUTDIR}/${FILE_HEADER}-sanitized-calibrated.jsonl:/app/generation.jsonl \
-    --bind $(pwd)/${OUTDIR}/metrics.json:/app/metrics.json \
+    --bind $(pwd)/${OUTDIR}/${DATASET}-${SUBSET}-${SPLIT}_metrics.json:/app/metrics.json \
     /home/masaki/bigcodebench/evaluation-harness_latest.sif \
     python3 bigcodebench/evaluate.py --split $SPLIT --subset $SUBSET --samples /app/generation.jsonl --save_path metrics.json
 
