@@ -287,8 +287,8 @@ def evaluate(flags):
             os.rename(result_path, new_path)
             print(f"Backup {result_path} to {new_path}")
 
-    if args.save_path:
-        with open("metrics.json", "w") as f:
+    if flags.save_path:
+        with open(flags.save_path, "w") as f:
             json.dump(results, f, indent=2)
     else:
         if not os.path.isfile(result_path):
