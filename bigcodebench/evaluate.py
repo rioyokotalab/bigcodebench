@@ -287,9 +287,13 @@ def evaluate(flags):
             os.rename(result_path, new_path)
             print(f"Backup {result_path} to {new_path}")
 
-    if not os.path.isfile(result_path):
-        with open(result_path, "w") as f:
+    if args.save_path:
+        with open("metrics.json", "w") as f:
             json.dump(results, f, indent=2)
+    else:
+        if not os.path.isfile(result_path):
+            with open(result_path, "w") as f:
+                json.dump(results, f, indent=2)
 
     if flags.save_pass_rate:
         pass_at_k_path = result_path.replace("_eval_results.json", "_pass_at_k.json")
@@ -329,6 +333,7 @@ def main():
     parser.add_argument("--samples", required=True, type=str)
     parser.add_argument("--save_pass_rate", action="store_true")
     parser.add_argument("--parallel", default=None, type=int)
+    parser.add_argument("--save_path", default=None, type=str)
     parser.add_argument("--min-time-limit", default=1, type=float)
     parser.add_argument("--max-as-limit", default=30*1024, type=int)
     parser.add_argument("--max-data-limit", default=30*1024, type=int)
