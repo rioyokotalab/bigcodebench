@@ -1,5 +1,5 @@
 #!/bin/bash
-#YBATCH -r a100_1
+#YBATCH -r a6000_1
 #SBATCH -N 1
 #SBATCH -J bigcodebench
 #SBATCH --time=168:00:00
@@ -22,25 +22,19 @@ DATASET=bigcodebench
 TEMP=0
 SPLIT=complete
 SUBSET=hard
-if [[ $MODEL == *"/"* ]]; then
-  ORG=$(echo $MODEL | cut -d'/' -f1)--
-  BASE_MODEL=$(echo $MODEL | cut -d'/' -f2)
-else
-  ORG=""
-  BASE_MODEL=$MODEL
-fi
 
 if [ "$SUBSET" = "full" ]; then
     FILE_HEADER="${DATASET}-${SPLIT}--${BACKEND}-${TEMP}-${N_SAMPLES}"
   else
     FILE_HEADER="${DATASET}-${SUBSET}-${SPLIT}--${BACKEND}-${TEMP}-${N_SAMPLES}"
   fi
-OUTDIR="results/${BASE_MODEL}/bigcode"
+OUTDIR="results/${MODEL}/bigcode"
 
 mkdir -p $OUTDIR
 
 if [ ${DO_GENERATION} = "true" ]; then
   echo "Generating"
+  { time \
   bigcodebench.generate \
     --save_path ${OUTDIR}/${FILE_HEADER}.jsonl \
     --model $MODEL \
@@ -51,6 +45,7 @@ if [ ${DO_GENERATION} = "true" ]; then
     --bs $batch_size \
     --n_samples $N_SAMPLES \
     --tp $NUM_GPU
+  } 2>&1 | tee ${OUTDIR}/generation_time.log
 
   bigcodebench.sanitize --samples ${OUTDIR}/${FILE_HEADER}.jsonl --calibrate
 fi
@@ -63,7 +58,7 @@ if [ ${DO_EVAL} = "true" ]; then
     --bind $(pwd)/${OUTDIR}/${FILE_HEADER}-sanitized-calibrated.jsonl:/app/generation.jsonl \
     --bind $(pwd)/${OUTDIR}/${DATASET}-${SUBSET}-${SPLIT}_metrics.json:/app/metrics.json \
     /home/masaki/bigcodebench/evaluation-harness_latest.sif \
-    python3 bigcodebench/evaluate.py --split $SPLIT --subset $SUBSET --samples /app/generation.jsonl --save_path metrics.json
+    python3 bigcodebench/evaluate.py --split $SPLIT --subset $SUBSET --samples /app/generation.jsonl --save_path /app/metrics.json
 
   # # If the execution is slow:
   # bigcodebench.evaluate --split $SPLIT --subset $SUBSET --samples $FILE_HEADER-sanitized-calibrated.jsonl --parallel 32
