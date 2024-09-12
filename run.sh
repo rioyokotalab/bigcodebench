@@ -60,7 +60,7 @@ if [ ${DO_EVAL} = "true" ]; then
   echo "Evaluating"
   touch $(pwd)/${OUTDIR}/metrics.json
   singularity exec \
-    --bind $(pwd)/${OUTDIR}/$FILE_HEADER-sanitized-calibrated.jsonl:/app/generation.jsonl \
+    --bind $(pwd)/${OUTDIR}/${FILE_HEADER}-sanitized-calibrated.jsonl:/app/generation.jsonl \
     --bind $(pwd)/${OUTDIR}/metrics.json:/app/metrics.json \
     /home/masaki/bigcodebench/evaluation-harness_latest.sif \
     python3 bigcodebench/evaluate.py --split $SPLIT --subset $SUBSET --samples /app/generation.jsonl --save_path metrics.json
@@ -68,3 +68,5 @@ if [ ${DO_EVAL} = "true" ]; then
   # # If the execution is slow:
   # bigcodebench.evaluate --split $SPLIT --subset $SUBSET --samples $FILE_HEADER-sanitized-calibrated.jsonl --parallel 32
 fi
+
+echo "Done"
