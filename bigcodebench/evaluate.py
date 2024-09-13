@@ -289,7 +289,11 @@ def evaluate(flags):
 
     if flags.save_path:
         with open(flags.save_path, "w") as f:
-            json.dump(results, f, indent=2)
+            combined_results = {
+                "pass_at_k": pass_at_k,
+                "results": results
+            }
+            json.dump(combined_results, f, indent=2)
     else:
         if not os.path.isfile(result_path):
             with open(result_path, "w") as f:
