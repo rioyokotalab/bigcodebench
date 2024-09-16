@@ -16,15 +16,15 @@ DO_GENERATION=$2
 DO_EVAL=$3
 BACKEND=${4:-vllm} # hf,vllm,openai,mistralai,authropic,googleの6つから
 NUM_GPU=1
-batch_size=5
+batch_size=256
 N_SAMPLES=1
 DATASET=bigcodebench
 TEMP=0
-SPLIT=complete
-SUBSET=hard
+SPLIT=$5
+SUBSET=$6
 
 if [ "$SUBSET" = "full" ]; then
-    FILE_HEADER="${DATASET}-${SPLIT}--${BACKEND}-${TEMP}-${N_SAMPLES}"
+    FILE_HEADER="${DATASET}-${SUBSET}-${SPLIT}--${BACKEND}-${TEMP}-${N_SAMPLES}"
   else
     FILE_HEADER="${DATASET}-${SUBSET}-${SPLIT}--${BACKEND}-${TEMP}-${N_SAMPLES}"
   fi
@@ -53,15 +53,9 @@ fi
 # Check if the ground truth works on your machine
 if [ ${DO_EVAL} = "true" ]; then
   echo "Evaluating"
-  touch $(pwd)/${OUTDIR}/${DATASET}-${SUBSET}-${SPLIT}_metrics.json
-  singularity exec \
-    --bind $(pwd)/${OUTDIR}/${FILE_HEADER}-sanitized-calibrated.jsonl:/app/generation.jsonl \
-    --bind $(pwd)/${OUTDIR}/${DATASET}-${SUBSET}-${SPLIT}_metrics.json:/app/metrics.json \
-    /home/masaki/bigcodebench/evaluation-harness_latest.sif \
-    python3 bigcodebench/evaluate.py --split $SPLIT --subset $SUBSET --samples /app/generation.jsonl --save_path /app/metrics.json
-
   # # If the execution is slow:
-  # bigcodebench.evaluate --split $SPLIT --subset $SUBSET --samples $FILE_HEADER-sanitized-calibrated.jsonl --parallel 32
+  bigcodebench.evaluate --split $SPLIT --subset $SUBSET --samples $OUTDIR/bigcodebench-${SUBSET}-${SPLIT}--vllm-0-1-sanitized-calibrated.jsonl --parallel 32
 fi
 
+echo "Model $MODEL"
 echo "Done"
